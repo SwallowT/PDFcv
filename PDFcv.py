@@ -66,21 +66,23 @@ def details(string):
 while True:
     # 获取windows活动窗口、最前窗口的标题 https://blog.csdn.net/shjsfx/article/details/106089331
     winName = win32gui.GetWindowText(win32gui.GetForegroundWindow())
-    if ("福昕阅读器" in winName) or ("WPS" in winName) or ("知云" in winName):
+    if ("福昕阅读器" in winName) or ("WPS" in winName) or ("知云" in winName) or ("Xodo" in winName):
         tmp_value = pyperclip.paste()  # 读取剪切板复制的内容
 
         try:
             if tmp_value != recent_value:  # 如果检测到剪切板内容有改动，那么就进入文本的修改
-                recent_value = tmp_value
+                # recent_value = tmp_value
 
-                out = re.sub(r"\s{2,}", " ", recent_value)  # 将文本的换行符去掉，变成一个空格
+                out = re.sub(r"\s{2,}", " ", tmp_value)  # 将文本的换行符去掉，变成一个空格
                 our1 = re.sub(r'(?<=[^\x00-\xff])\s(?=[^\x00-\xff])', '', out)  # 中文去空格
                 out2 = details(our1)  # 细节
                 out3 = strQ2B(out2)  # 全角转半角
-                out4 = E_C_trans(out3)  # 中英文标点转换
+                result = E_C_trans(out3)  # 中英文标点转换
 
-                pyperclip.copy(out4)  # 将修改后的文本写入系统剪切板中
-                print("\n Value changed: %s" % str(out4))  # 输出已经去除换行符的文本
+                recent_value = result
+                pyperclip.copy(result)  # 将修改后的文本写入系统剪切板中
+
+                print("\n Value changed: %s" % recent_value)  # 输出已经去除换行符的文本
             time.sleep(0.1)
         except KeyboardInterrupt:  # 如果有ctrl+c，那么就退出这个程序。  （不过好像并没有用。无伤大雅）
             break

@@ -1,11 +1,11 @@
-import time
-import sys
-import os
-import re
-import win32gui
+from time import sleep
+from sys import path as syspath
+from os import path as ospath
+from re import sub
+from win32gui import GetForegroundWindow, GetWindowText
+from pyperclip import paste, copy# 引入模块
 
-sys.path.append(os.path.abspath("SO_site-packages"))
-import pyperclip  # 引入模块
+syspath.append(ospath.abspath("SO_site-packages"))
 
 recent_value = ""
 tmp_value = ""  # 初始化（应该也可以没有这一行，感觉意义不大。但是对recent_value的初始化是必须的）
@@ -23,7 +23,7 @@ def strQ2B(ustring):
         inside_code = ord(uchar)
         if inside_code == 12288:  # 全角空格直接转换
             inside_code = 32
-        elif (inside_code >= 65281 and inside_code <= 65374):  # 全角字符（除空格）根据关系转化
+        elif 65281 <= inside_code <= 65374:  # 全角字符（除空格）根据关系转化
             inside_code -= 65248
 
         rstring += chr(inside_code)
@@ -37,7 +37,7 @@ def strB2Q(ustring):
         inside_code = ord(uchar)
         if inside_code == 32:  # 半角空格直接转化
             inside_code = 12288
-        elif inside_code >= 32 and inside_code <= 126:  # 半角字符（除空格）根据关系转化
+        elif 32 <= inside_code <= 126:  # 半角字符（除空格）根据关系转化
             inside_code += 65248
 
         rstring += chr(inside_code)
@@ -50,9 +50,9 @@ def E_C_trans(string):
     global E_pun, C_pun, tableE2C, tableC2E
     for ep in E_pun:
         pat = r"(?<=[^\x00-\xff])" + "\\" + ep
-        string = re.sub(pat, tableE2C[ep], string)
+        string = sub(pat, tableE2C[ep], string)
     for cp in C_pun:
-        string = re.sub(r"(?<=[\x00-\xff])" + cp, tableC2E[cp], string)
+        string = sub(r"(?<=[\x00-\xff])" + cp, tableC2E[cp], string)
     return string.translate(tableE2C)
 
 
@@ -65,25 +65,25 @@ def details(string):
 
 while True:
     # 获取windows活动窗口、最前窗口的标题 https://blog.csdn.net/shjsfx/article/details/106089331
-    winName = win32gui.GetWindowText(win32gui.GetForegroundWindow())
+    winName = GetWindowText(GetForegroundWindow())
     if ("福昕阅读器" in winName) or ("WPS" in winName) or ("知云" in winName) or ("Xodo" in winName):
-        tmp_value = pyperclip.paste()  # 读取剪切板复制的内容
+        tmp_value = paste()  # 读取剪切板复制的内容
 
         try:
             if tmp_value != recent_value:  # 如果检测到剪切板内容有改动，那么就进入文本的修改
                 # recent_value = tmp_value
 
-                out = re.sub(r"\s{2,}", " ", tmp_value)  # 将文本的换行符去掉，变成一个空格
-                our1 = re.sub(r'(?<=[^\x00-\xff])\s(?=[^\x00-\xff])', '', out)  # 中文去空格
+                out = sub(r"\s{2,}", " ", tmp_value)  # 将文本的换行符去掉，变成一个空格
+                our1 = sub(r'(?<=[^\x00-\xff])\s(?=[^\x00-\xff])', '', out)  # 中文去空格
                 out2 = details(our1)  # 细节
                 out3 = strQ2B(out2)  # 全角转半角
                 result = E_C_trans(out3)  # 中英文标点转换
 
                 recent_value = result
-                pyperclip.copy(result)  # 将修改后的文本写入系统剪切板中
+                copy(result)  # 将修改后的文本写入系统剪切板中
 
                 print("\n Value changed: %s" % recent_value)  # 输出已经去除换行符的文本
-            time.sleep(0.1)
+            sleep(0.1)
         except KeyboardInterrupt:  # 如果有ctrl+c，那么就退出这个程序。  （不过好像并没有用。无伤大雅）
             break
 
